@@ -1,7 +1,7 @@
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
-const PLAYER_STORAGE_KEY = 'F8_PLAYER';
+const PLAYER_STORAGE_KEY = 'JADE_PLAYER';
 
 const cd = $('.cd');
 const heading = $('header h2');
@@ -15,6 +15,10 @@ const prevBtn = $('.btn-prev');
 const randomBtn = $('.btn-random');
 const repeatBtn = $('.btn-repeat');
 const playlist = $('.playlist');
+const currentTime = $('.current-time');
+const totalTime = $('.total-time');
+
+
 
 const app = {
     curentIndex: 0,
@@ -83,7 +87,7 @@ const app = {
     handleEvents: function () {
         const _this = this;
         const cdWidth = cd.offsetWidth;
-
+    
         // Xử lí CD quay/ dừng
         const cdThumbAnimate = cdThumb.animate([
             { transform: 'rotate(360deg)' }
@@ -106,12 +110,14 @@ const app = {
         playBtn.onclick = function () {
             _this.isPlaying ? audio.pause() : audio.play();
 
+            // kHI chạy
             audio.onplay = function () {
                 _this.isPlaying = true;
                 player.classList.add('playing');
                 cdThumbAnimate.play();
             }
 
+            //Khi dừng
             audio.onpause = function () {
                 _this.isPlaying = false;
                 player.classList.remove('playing');
@@ -129,9 +135,10 @@ const app = {
         }
 
         //Xử lí khi tua xong
-        progress.onchange = function (e) {
+        progress.oninput = function (e) {
             const seekTime = audio.duration / 100 * e.target.value;
             audio.currentTime = seekTime;
+            console.log(audio.duration);
         }
 
         // Khi next bài hát
@@ -185,6 +192,7 @@ const app = {
             repeatBtn.classList.toggle('active', _this.isRepeat);
         }
 
+        // Xử lý khi click vào playlist
         playlist.onclick = function (e) {
             const songNode = e.target.closest('.song:not(.active)');
             //Xử lí khi click vào song
@@ -211,11 +219,11 @@ const app = {
     },
 
     loadCurrentSong: function () {
-
         heading.textContent = this.currentSong.name;
         cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`;
         audio.src = this.currentSong.path;
     },
+
     loadConfig: function () {
         this.isRandom = this.config.isRandom;
         this.isRepeat = this.config.isRepeat;
@@ -274,11 +282,11 @@ const app = {
         // Render playlist
         this.render();
 
+       
         // Hiển thị trạng thái ban đầu của button repeat & random
         randomBtn.classList.toggle('active', this.isRandom);
         repeatBtn.classList.toggle('active', this.isRepeat);
     }
-
 
 }
 app.start();
