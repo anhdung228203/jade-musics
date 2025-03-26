@@ -1,3 +1,4 @@
+import data from '../database/songs.js';
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
@@ -17,57 +18,28 @@ const repeatBtn = $('.btn-repeat');
 const playlist = $('.playlist');
 const currentTime = $('.current-time');
 const totalTime = $('.total-time');
-
-
+const volumeWrap = $('.volume-wrap');
+const volumeBtn = $('.btn-volume');
+const volumeRange = $('.volume-range');
 
 const app = {
-	curentIndex: 0,
+	currentIndex: 0,
 	isPlaying: false,
 	isRandom: false,
 	isRepeat: false,
+	isDragging: false,
 	config: JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)) || {},
-	songs: [
-		{
-			name: 'Bắc Bling',
-			singer: 'Hòa Minzy',
-			path: './assets/music/bacbling.mp3',
-			image: './assets/img/Bắc bling.jpg'
-		},
-		{
-			name: 'Mười Năm',
-			singer: 'Đen Vâu',
-			path: './assets/music/Đen - Mười Năm.mp3',
-			image: './assets/img/đen.jpg'
-		}, {
-			name: 'Mây và Gió',
-			singer: 'Mashup',
-			path: './assets/music/Mây x Gió .mp3',
-			image: './assets/img/Mây x Gió.jpg'
-		}, {
-			name: 'Ngày mai em đi ',
-			singer: 'TOULIVER X LÊ HIẾU X SOOBIN HOÀNG SƠN',
-			path: './assets/music/Ngày mai em đi.mp3',
-			image: './assets/img/NGÀY MAI EM ĐI.jpg'
-		}, {
-			name: 'Ngày ấy',
-			singer: 'Em Elata',
-			path: './assets/music/Em Ellata - Ngày ấy (Yesterday).mp3',
-			image: './assets/img/Ngày ấy.jpg'
-		}, {
-			name: 'Thằng Điên',
-			singer: 'JUSTATEE x PHƯƠNG LY',
-			path: './assets/music/THẰNG ĐIÊN.mp3',
-			image: './assets/img/THẰNG ĐIÊN  JUSTATEE x PHƯƠNG LY.jpg'
-		}
-	],
+	songs: data,
+
 	setConfig: function (key, value) {
 		this.config[key] = value;
 		localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config));
 	},
+
 	render: function () {
 		const htmls = this.songs.map(song => {
 			return `
-                <div class="song ${this.curentIndex === this.songs.indexOf(song) ? 'active' : ''}" data-index="${this.songs.indexOf(song)}">
+                <div class="song ${this.currentIndex === this.songs.indexOf(song) ? 'active' : ''}" data-index="${this.songs.indexOf(song)}">
                     <div class="thumb"
                         style="background-image: url('${song.image}')">
                     </div>
@@ -88,7 +60,7 @@ const app = {
 		const _this = this;
 		const cdWidth = cd.offsetWidth;
 
-
+		//Hiển thị thời gian của audio 
 		audio.addEventListener('loadedmetadata', function () {
 			if (audio.duration) {
 				totalTime.textContent = _this.formatTime(audio.duration);
@@ -118,7 +90,7 @@ const app = {
 		playBtn.onclick = function () {
 			_this.isPlaying ? audio.pause() : audio.play();
 
-			// kHI chạy
+			// Khi chạy
 			audio.onplay = function () {
 				_this.isPlaying = true;
 				player.classList.add('playing');
@@ -134,23 +106,49 @@ const app = {
 
 			// Khi tiến độ bài hát thay đổi
 			audio.ontimeupdate = function () {
-				if (audio.duration) {
-					const progressPercent = audio.currentTime / audio.duration * 100;
-					progress.value = progressPercent;
+				if (!progress.matches(':active') && !progress.matches(':focus')) {
+					if (audio.duration) {
+						const progressPercent = audio.currentTime / audio.duration * 100;
+						progress.value = progressPercent;
+					}
+				
 				}
-				currentTime.textContent = _this.formatTime(audio.currentTime);
-			
+				if(!_this.isDragging){
+					currentTime.textContent = _this.formatTime(audio.currentTime);
+				}
+				
+				
 			}
 		}
 
-		//Xử lí khi tua xong
-		progress.oninput = function (e) {
-			const seekTime = audio.duration / 100 * e.target.value;
-			audio.currentTime = seekTime;
-			currentTime.textContent = _this.formatTime(seekTime);
-			console.log(audio.currentTime );
+		// Xử lí khi thay đổi âm lượng
+		volumeBtn.onclick = function () {
+			volumeWrap.style.display = !Boolean(volumeWrap.style.display) ? 'block' : null
 		}
 
+		volumeWrap.onclick = function (e) {
+			e.stopPropagation()
+		}
+
+		volumeRange.oninput = function (e) {
+			audio.volume = e.target.value / 100;
+			_this.setConfig('volume', e.target.value)
+		}
+		
+
+		//Xử lí khi tua xong
+		progress.oninput = function (e) {
+			_this.isDragging = true;
+			const seekTime = (audio.duration / 100) * e.target.value;
+			currentTime.innerHTML = _this.formatTime(seekTime);
+		};
+		
+		// Khi thả chuột ra (cập nhật vị trí phát nhạc)
+		progress.onchange = function (e) {
+			_this.isDragging = false;
+			const seekTime = (audio.duration / 100) * e.target.value;
+			audio.currentTime = seekTime;
+		};
 		// Khi next bài hát
 		nextBtn.onclick = function () {
 			if (_this.isRandom) {
@@ -182,7 +180,6 @@ const app = {
 			_this.isRandom = !_this.isRandom;
 			_this.setConfig('isRandom', _this.isRandom);
 			randomBtn.classList.toggle('active', _this.isRandom);
-
 		}
 
 		//Xử lí next song khi audio ended
@@ -192,7 +189,6 @@ const app = {
 			} else {
 				nextBtn.click();
 			}
-
 		}
 
 		//Xử lý lặp lại 1 bài hát
@@ -209,28 +205,26 @@ const app = {
 			if (songNode || e.target.closest('.option')) {
 				//Xử lí khi click vào song
 				if (songNode) {
-					_this.curentIndex = Number(songNode.dataset.index);
+					_this.currentIndex = Number(songNode.dataset.index);
 					_this.loadCurrentSong();
 					audio.play();
 					_this.render();
 				}
 			}
 		}
-
-
 	},
 
 	defineProperties: function () {
 		Object.defineProperty(this, 'currentSong', {
 			get: function () {
-				return this.songs[this.curentIndex];
+				return this.songs[this.currentIndex];
 			}
 		})
 	},
 
 	formatTime: function (time) {
-		seconds = Math.floor(time % 60);
-		minutes = Math.floor(time / 60);
+		const seconds = Math.floor(time % 60);
+		const minutes = Math.floor(time / 60);
 		return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 	},
 
@@ -240,34 +234,34 @@ const app = {
 		audio.src = this.currentSong.path;
 	},
 
-	loadConfig: function () {
-		this.isRandom = this.config.isRandom;
-		this.isRepeat = this.config.isRepeat;
-
-		// Object.assign(this, this.config);
-	},
 	scrollToActiveSong: function () {
 		setTimeout(() => {
 			$('.song.active').scrollIntoView({
-				behavior: 'smooth',
-				block: 'nearest'
-			})
-		}, 300)
+				behavior: "smooth",
+                block: "center",
+                inline: "nearest",
+			});
+		}, 300);
+	},
+
+	loadConfig: function () {
+		this.isRandom = this.config.isRandom;
+		this.isRepeat = this.config.isRepeat;
+		// Object.assign(this, this.config);
 	},
 
 	nextSong: function () {
-		this.curentIndex++;
-		if (this.curentIndex >= this.songs.length) {
-			this.curentIndex = 0;
+		this.currentIndex++;
+		if (this.currentIndex >= this.songs.length) {
+			this.currentIndex = 0;
 		}
 		this.loadCurrentSong();
-
 	},
 
 	prexSong: function () {
-		this.curentIndex--;
-		if (this.curentIndex < 0) {
-			this.curentIndex = this.songs.length - 1;
+		this.currentIndex--;
+		if (this.currentIndex < 0) {
+			this.currentIndex = this.songs.length - 1;
 		}
 		this.loadCurrentSong();
 	},
@@ -277,8 +271,7 @@ const app = {
 		do {
 			newIndex = Math.floor(Math.random() * this.songs.length);
 		} while (newIndex === this.index);
-
-		this.curentIndex = newIndex;
+		this.currentIndex = newIndex;
 		this.loadCurrentSong();
 	},
 
@@ -298,7 +291,6 @@ const app = {
 		// Render playlist
 		this.render();
 
-
 		// Hiển thị trạng thái ban đầu của button repeat & random
 		randomBtn.classList.toggle('active', this.isRandom);
 		repeatBtn.classList.toggle('active', this.isRepeat);
@@ -306,3 +298,5 @@ const app = {
 
 }
 app.start();
+
+

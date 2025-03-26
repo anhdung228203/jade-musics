@@ -1,16 +1,20 @@
 :root {
   --primary-color: #ec1f55;
   --text-color: #333;
+  --dark-color: #180161;
+  --dark-color-1: #03346E;
 }
 
 * {
   padding: 0;
   margin: 0;
   box-sizing: inherit;
+
 }
 
 body {
   background-color: #f5f5f5;
+  background: linear-gradient(45deg, black, rgb(137, 137, 137));
 }
 
 html {
@@ -38,15 +42,49 @@ html {
 
 .dashboard {
   padding: 16px 16px 14px;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.55);
   position: fixed;
   top: 0;
   width: 100%;
   max-width: 480px;
   border-bottom: 1px solid #ebebeb;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+}
+/* #region Volume */
+.btn-volume {
+  position: relative;
 }
 
-/* HEADER */
+/* .btn-volume:hover .volume-wrap {
+  display: block;
+} */
+
+.volume-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  display: none;
+}
+
+.volume-range {
+  accent-color: var(--primary-color);
+  height: 6em;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  vertical-align: bottom;
+}
+/* #endregion Volume */
+
+/* #region HEADER */
+.header-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 header {
   text-align: center;
   margin-bottom: 10px;
@@ -61,6 +99,41 @@ header h2 {
   color: var(--text-color);
   font-size: 20px;
 }
+/* #endregion HEADER */
+
+/* #region Options */
+.option {
+  position: relative;
+}
+
+.option-list {
+  position: absolute;
+  background-color: #fff;
+  width: 140px;
+  top: 100%;
+  right: -32%;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  display: none;
+}
+
+.option-item {
+  font-size: 14px;
+  padding: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.option-item:hover {
+  background-color: #f3f3f3;
+}
+
+.theme-icon {
+  margin-left: 1em;
+}
+/* #endregion Options */
 
 /* CD */
 .cd {
@@ -109,11 +182,9 @@ header h2 {
 }
 
 .progress {
+  accent-color: var(--primary-color);
   width: 100%;
-  -webkit-appearance: none;
-  /* appearance: none; */
   height: 6px;
-  background: #d3d3d3;
   outline: none;
   opacity: 0.7;
   -webkit-transition: 0.2s;
@@ -191,15 +262,74 @@ header h2 {
 .player-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
-  color: #333;
-  /* Màu chữ trắng */
+  justify-content: space-between;
+  width: 90%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px 5px;
+  font-family: Arial, sans-serif;
 }
+
 
 .current-time,
 .total-time {
   font-size: 14px;
-  font-family: Arial, sans-serif;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
 }
+
+#region Dark mode theme */
+.dark {
+  background-color: #03003f;
+}
+
+.dark .dashboard,
+.dark .player {
+  background-color: var(--dark-color);
+  color: var(--primary-color);
+}
+
+.dark .player i:not(.icon-pause, .icon-play, .favorite i) {
+  color: var(--primary-color);
+}
+
+.dark .dashboard {
+  border: none;
+}
+
+
+.dark header h2 {
+  color: #EEDF7A;
+}
+
+.dark .option-list {
+  background-color: var(--dark-color-1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.dark .control .btn.active i {
+  color: var(--primary-color-1);
+}
+
+
+.dark .song {
+  background-color: var(--dark-color-1);
+  color: var(--primary-color);
+}
+
+
+.dark .song .author,
+.dark .song .title {
+  color: var(--primary-color);
+}
+
+.dark .song.active .author,
+.dark .song.active .title {
+  color: var(--primary-color-1);
+}
+/* #endregion Dark mode theme
+
+
+
 
