@@ -1,4 +1,4 @@
-import data from '../database/songs.js';
+import data from './database/songs.js';
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
 
